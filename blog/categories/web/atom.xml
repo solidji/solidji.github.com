@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[计炜 的 Octopress Blog]]></title>
-  <link href="http://solidji.github.io/atom.xml" rel="self"/>
+  <title><![CDATA[Category: WEB | 计炜 的 Octopress Blog]]></title>
+  <link href="http://solidji.github.io/blog/categories/web/atom.xml" rel="self"/>
   <link href="http://solidji.github.io/"/>
   <updated>2014-02-28T05:55:29+08:00</updated>
   <id>http://solidji.github.io/</id>
