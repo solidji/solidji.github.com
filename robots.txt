@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: 
+
+Sitemap: http://solidji.github.io/sitemap.xml 
