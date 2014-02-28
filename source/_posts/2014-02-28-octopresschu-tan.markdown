@@ -1,0 +1,106 @@
+---
+layout: post
+title: "Octopress初探"
+date: 2014-02-28 21:50:48 +0800
+comments: true
+categories: [Octopress, ruby, rbenv, grew]
+---
+一种<a href="http://www.yangzhiping.com/tech/writing-space.html/">理想的写作环境</a>。
+markdown语法快速成文，git与github实时保存，jekyll或octopress实时成书或者showoff实时成ppt。
+jekyll是一个用ruby写的静态网页生成器，作者是mojombo，Github的创始人之一。
+Octopress基于jekyll，此外提供了一系列开箱即用的插件，外带一套还算不错的主题。
+
+参考这两篇自己搭建了一下:
+<p><a href="http://beyondvincent.com/blog/2013/08/03/108-creating-a-github-blog-using-octopress/">利用Octopress搭建一个Github博客</a>.</p>
+<p><a href="http://geekblog.zhaoyan.me/%E5%A6%82%E4%BD%95%E5%BB%BA%E7%AB%8B%E4%B8%80%E4%B8%AA%E5%85%8D%E8%B4%B9%E7%9A%84octopress-blog-github-blog/#.Uw-bU_SSyaA">如何建立一个免费的Octopress Blog (GitHub Blog)</a>.</p>
+随手记下整个过程中遇到的一些问题.
+
+操作系统是OS X 10.9.1,原本装了一个ruby 2.0.0p247
+不过看到<a href="http://octopress.org/docs/setup/">Octopress官方安装教程</a>用的是ruby 1.9.3
+所以另外装了个rbenv来将ruby 1.9.3设为local版本
+
+如果你在Mac，可能需要加上 sudo 给于如何的access rights
+1.安装Homebrew
+ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+
+2.安装rbenv
+brew update
+brew install rbenv
+brew install ruby-build
+
+3.设置ruby本地版本
+rbenv install 1.9.3-p0
+rbenv local 1.9.3-p0 #这里可以rbenv global 1.9.3-p0来设置ruby的全局版本
+rbenv rehash
+
+4.clone octopress
+git clone git://github.com/imathis/octopress.git octopress //从github复制octopress代码
+cd octopress
+
+gem install bundler //安装dependencies
+rbenv rehash    # If you use rbenv, rehash to be able to run the bundle command
+bundle install
+这一步遇到报错
+An error occured while installing RedCloth (4.2.9), and Bundler cannot continue.
+Make sure that `gem install RedCloth -v '4.2.9'` succeeds before bundling.
+发现是xcode5里面的命令行工具command line tools需要手动安装gcc42
+$ brew update
+$ brew tap homebrew/homebrew-dupes
+$ brew install apple-gcc42
+$ sudo ln -s /usr/bin/gcc /usr/bin/gcc-4.2
+$ bundle install
+
+xcode-select --switch
+这个时候如果xcode已经有一个gcc的话,两个gcc版本共存,还需要调整一下环境变量的优先顺序
+echo $PATH #先查一下原本的环境变量
+export PATH=/usr/local/bin:$PATH
+然后记得重启一下终端
+
+rake install //安装Octopress默认theme
+这里碰到个错误:You have already activated rake 10.1.1, but your Gemfile requires rake 0.9.2.2. Using bundle exec may solve this.
+解决办法是修改clone到本机的otctopress文件夹，找到一个叫“Gemfile”的文件,修改这一行 gem 'rake', '~> 10.1.1'
+
+#到这里,整个Octopress就算是安装好了,接下来就是配置并部署到github pages上
+_config.yml是博客重要的一个配置文件,大多数情况下只需要配置此文件即可。
+
+	url:                # 加入你的github pages的url,类似http://username.github.io
+    title:              # 你的Blog的header名字
+    subtitle:           # 你的blog的副标题
+    author:             # 你的名字
+    simple_search:      # 站内搜索引擎
+    description:        # 关于Blog的一个简单介绍
+//其他的你可以留为预设配置不做修改
+
+github pages是一个免费帮你托管个人站点页面的服务
+具体步骤参考<a href="http://pages.github.com/">github的官方教程</a>。这里就不赘述了
+
+部署到仓库
+rake setup_github_pages
+rake generate
+rake deploy
+
+注意提交的时候,octopress在运行“rake setup_github_pages”，命令的时候，自动建立了一个叫”source”的branch,你所有的源代码回被推送进去，然后master变成了编译之后，github所支持的代码。
+所以你在推送的时候，遇到github的错误提示，不能commit的时候，需要查看下，很可能你本地的branch和要推送的github 不在同一个Branch，所以导致推送失败。
+
+$ git add .
+$ git commit -am 'Initial source commit'
+$ git push origin source
+这样就能成功deploy上去了
+
+具体创建一篇博客文章的步骤
+博文必须存储在source/_posts目录下，并且需要按照Jekyll的命名规范对文章进行命名：YYYY-MM-DD-post-title.markdown。文章的名字会被当做url的一部分，而其中的日期用于对博文的区分和排序。
+通过Octopress提供的task可以正确的按照命名规范创建一个博文，并且在博文中会附带常用的一些yaml元数据。只需要在终端输入如下命令：
+rake new_post["title"]
+
+所有的octopress blog都要按照markdown规则来写，Markdown的例子和介绍，你可以看这里： <a href="http://daringfireball.net/projects/markdown/basics/">markdown basic</a>
+
+写完文章后,推到仓库
+$ rake generate
+$ git add .
+$ git commit -am "Some comment here." 
+$ git push origin source
+$ rake deploy
+另外,在rake deploy之前,可以先rake preview,先在本地部署预览,http://localhost:4000 查看
+
+好了,访问你自己的github pages主页,看看效果吧
+http://username.github.io
